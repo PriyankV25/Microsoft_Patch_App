@@ -73,7 +73,7 @@ def scrape_tr_ids(url: str) -> list:
             raw_id = tr['id']
             cleaned_id = raw_id.split('_R')[0]  # Remove everything from "_R" onward
             cleaned_ids.append(cleaned_id)
-
+        
         return cleaned_ids
 
     finally:
@@ -100,15 +100,37 @@ def print_tr_ids(tr_ids: list):
     else:
         print("No <tr> IDs found or tableContainer not loaded.")
 
+
+def scrape_all_pages(query: str, total_pages: int) -> list:
+    all_tr_ids = []
+
+    for i in range(total_pages):
+        paged_url = f"https://www.catalog.update.microsoft.com/Search.aspx?q={query}&p={i}"
+        print(f"\nScraping page {i + 1} of {total_pages}...")
+        tr_ids = scrape_tr_ids(paged_url)
+        all_tr_ids.extend(tr_ids)
+          # Print IDs for this page immediately
+        for tr_id in tr_ids:
+            print(tr_id)
+
+        print()  # Add one blank line after each page's output
+    return all_tr_ids
+
+
 # --- Main Execution ---
 if __name__ == "__main__":
-    query = "2025-05"
+    query = "2025-04"
     url = build_search_url(query)
 
     summary, page_count = get_update_summary_info(url)
     print_patch_summary(summary, page_count)
 
-    tr_ids = scrape_tr_ids(url)
-    print_tr_ids(tr_ids)
+    if page_count:
+        total_pages = int(page_count)
+        all_tr_ids = scrape_all_pages(query, total_pages)
+        print_tr_ids(all_tr_ids)
+        
+    else:
+        print("Unable to fetch page count. Exiting.")
 
     
