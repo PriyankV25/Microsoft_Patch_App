@@ -1,15 +1,114 @@
-import requests
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
 from bs4 import BeautifulSoup
+import time
 
-url = "https://www.catalog.update.microsoft.com/Search.aspx?q=2025"
-headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
-}
+# 1. Function to build the query URL
+def build_search_url(query: str) -> str:
+    base_url = "https://www.catalog.update.microsoft.com/Search.aspx?q="
+    return f"{base_url}{query}"
 
-response = requests.get(url, headers=headers)
+#2. function to get the total page
+def get_update_summary_info(url: str) -> tuple:
 
-if response.status_code == 200:
-    soup = BeautifulSoup(response.text, "html.parser")
-    print(soup.prettify()[:3000])  # print part of the HTML
-else:
-    print("Failed to load page:", response.status_code)
+    # Set up Selenium WebDriver
+    service = Service()
+    options = webdriver.ChromeOptions()
+    options.add_argument('--headless')
+    driver = webdriver.Chrome(service=service, options=options)
+
+    try:
+        driver.get(url)
+        time.sleep(5)
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+
+        number_div = soup.find("div", {"id": "numberOfUpdates"})
+        if number_div:
+            span = number_div.find("span", {"id": "ctl00_catalogBody_searchDuration"})
+            if span:
+                summary_text = span.get_text(strip=True)
+                
+                # Extract page count if ends with ')'
+                page_count = None
+                if summary_text.endswith(")"):
+                    parts = summary_text.split()
+                    if parts:
+                        last_part = parts[-1]       # get last word, e.g., "5)"
+                        page_count = last_part.rstrip(')')
+                
+                return summary_text, page_count
+            else:
+                return "Search duration span not found.", None
+        else:
+            return "Number of updates div not found.", None
+
+    finally:
+        driver.quit()
+
+
+
+# 2. Function to perform the web scraping and return list of <tr> IDs under #tableContainer
+def scrape_tr_ids(url: str) -> list:
+
+    # Set up Selenium WebDriver
+    service = Service()
+    options = webdriver.ChromeOptions()
+    options.add_argument('--headless')
+    driver = webdriver.Chrome(service=service, options=options)
+
+    try:
+        driver.get(url)
+        time.sleep(5)  # Wait for JavaScript to render content
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+
+        table_container = soup.find("div", {"id": "tableContainer"})
+        if not table_container:
+            return []
+
+        tr_tags = table_container.find_all("tr", id=True)
+
+        # Skip the first <tr>, and clean the rest
+        cleaned_ids = []
+        for tr in tr_tags[1:]:  # skip first tr
+            raw_id = tr['id']
+            cleaned_id = raw_id.split('_R')[0]  # Remove everything from "_R" onward
+            cleaned_ids.append(cleaned_id)
+
+        return cleaned_ids
+
+    finally:
+        driver.quit()
+
+
+# 3. Function to print the output
+def print_patch_summary(summary_text: str, page_count: str):
+    print("\nPatch Summary Info:")
+    print(summary_text)
+    if page_count:
+        print(f"Total Pages: {page_count}")
+    else:
+        print("Page count not found.")
+
+
+
+# 4. Function to print the output
+def print_tr_ids(tr_ids: list):
+    if tr_ids:
+        print("Found <tr> IDs under #tableContainer:")
+        for tr_id in tr_ids:
+            print(tr_id)
+    else:
+        print("No <tr> IDs found or tableContainer not loaded.")
+
+# --- Main Execution ---
+if __name__ == "__main__":
+    query = "2025-05"
+    url = build_search_url(query)
+
+    summary, page_count = get_update_summary_info(url)
+    print_patch_summary(summary, page_count)
+
+    tr_ids = scrape_tr_ids(url)
+    print_tr_ids(tr_ids)
+
+    
