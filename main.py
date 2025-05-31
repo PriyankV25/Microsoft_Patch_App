@@ -2,6 +2,12 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from bs4 import BeautifulSoup
 import time
+import os
+from datetime import date
+from openpyxl import Workbook
+from openpyxl.utils import get_column_letter
+import pandas as pd
+from datetime import datetime
 
 # 1. Function to build the query URL
 def build_search_url(query: str) -> str:
@@ -92,13 +98,18 @@ def print_patch_summary(summary_text: str, page_count: str):
 
 
 # 4. Function to print the output
-def print_tr_ids(tr_ids: list):
-    if tr_ids:
-        print("Found <tr> IDs under #tableContainer:")
-        for tr_id in tr_ids:
-            print(tr_id)
-    else:
-        print("No <tr> IDs found or tableContainer not loaded.")
+def save_ids_to_excel(ids: list[str], base_dir: str = "."):
+    # Create folder "Patch-YYYY-MM-DD"
+    date_str = datetime.now().strftime("%Y-%m-%d")
+    folder_name = f"Patch-{date_str}"
+    folder_path = os.path.join(base_dir, folder_name)
+    os.makedirs(folder_path, exist_ok=True)
+
+    # Save to Excel
+    df = pd.DataFrame(ids, columns=["Patch ID"])
+    excel_path = os.path.join(folder_path, "patch_ids.xlsx")
+    df.to_excel(excel_path, index=False)
+    print(f"Saved {len(ids)} IDs to: {excel_path}")
 
 
 def scrape_all_pages(query: str, total_pages: int) -> list:
@@ -119,7 +130,7 @@ def scrape_all_pages(query: str, total_pages: int) -> list:
 
 # --- Main Execution ---
 if __name__ == "__main__":
-    query = "2025-04"
+    query = "2025-05"
     url = build_search_url(query)
 
     summary, page_count = get_update_summary_info(url)
@@ -128,7 +139,7 @@ if __name__ == "__main__":
     if page_count:
         total_pages = int(page_count)
         all_tr_ids = scrape_all_pages(query, total_pages)
-        print_tr_ids(all_tr_ids)
+        save_ids_to_excel(all_tr_ids)
         
     else:
         print("Unable to fetch page count. Exiting.")
