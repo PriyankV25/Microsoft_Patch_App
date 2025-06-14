@@ -107,7 +107,7 @@ def get_os(soup):
 
     return "N/A"
 
-# Child Function 7: Get OS_Version
+# Child Function 8: Get OS_Version  [AMD=1, Intel=2, ARM=3]
 def get_os_version(soup):
     title = get_title(soup)
 
@@ -125,6 +125,100 @@ def get_os_version(soup):
 
     return "N/A"
 
+# Child Function 9: get_cpu_arch
+def get_cpu_arch(soup):
+    cpu_keywords = ["AMD", "ARM", "INTEL"]
+    
+    title = get_title(soup).upper()
+    arch = get_architecture(soup).upper()
+
+    if "AMD" in title or "AMD" in arch:
+        return "1, 2"
+    elif "ARM" in title or "ARM" in arch:
+        return "3"
+    elif any(cpu in title or cpu in arch for cpu in cpu_keywords):
+        # If matched with any specific keyword, already handled above
+        pass
+    return "1, 2, 3"
+
+# Child Function 10: Get More Information URL
+def more_info(soup):
+    kb_id = get_kb_id(soup)  # e.g., "KB5022282"
+    if kb_id == "N/A":
+        return "N/A"
+    
+    kb_no = kb_id.replace("KB", "")  # e.g., "5022282"
+
+    more_info_div = soup.find("div", {"id": "moreInfoDiv"})
+    if more_info_div:
+        anchors = more_info_div.find_all("a", href=True)
+        for a in anchors:
+            href = a['href']
+            if kb_no in href:
+                return href.strip()
+
+    # Fallback if not found in page
+    return f"https://support.microsoft.com/help/{kb_no}"
+
+# Child Function 11: Get support_url 
+def support_url(soup):
+    kb_id = get_kb_id(soup)  # e.g., "KB5022282"
+    if kb_id == "N/A":
+        return "N/A"
+
+    kb_no = kb_id.replace("KB", "")  # e.g., "5022282"
+
+    support_div = soup.find("div", {"id": "suportUrlDiv"})
+    if support_div:
+        anchors = support_div.find_all("a", href=True)
+        for a in anchors:
+            href = a['href']
+            if kb_no in href:
+                return href.strip()
+
+    # Fallback URL if no match is found
+    return f"https://support.microsoft.com/help/{kb_no}"
+
+# Child Function 12: Get update_type
+def update_type(soup):
+    classification_div = soup.find("div", {"id": "classificationDiv"})
+    if classification_div:
+        text = classification_div.text.replace("Classification:", "").strip()
+        return text
+    return "N/A"
+
+# Child Function 13: Get severity
+def get_severity(soup):
+    severity_div = soup.find("div", {"id": "msrcSeverityDiv"})
+    if severity_div:
+        text = severity_div.text.replace("MSRC severity:", "").strip()
+        return text
+    return "N/A"
+
+# Child Function 14: Get MSRC_number
+def MSRC_number(soup):
+    bulletin_div = soup.find("div", {"id": "securityBullitenDiv"})
+    if bulletin_div:
+        text = bulletin_div.text.replace("MSRC Number:", "").strip()
+        return text
+    return "N/A"
+
+# Child Function 15: Restart_Patch enable/disable [enable=1, disable=0]
+def Restart_Patch(soup):
+    reboot_div = soup.find("div", {"id": "rebootBehaviorDiv"})
+    if reboot_div:
+        text = reboot_div.text.strip()
+        if "Can request restart" in text:
+            return 1
+    return 0
+
+# Child Function 16: user_input
+def user_input(soup):
+    user_input_div = soup.find("div", {"id": "userInputDiv"})
+    if user_input_div:
+        text = user_input_div.text.strip()
+        return text.replace("May request user input:", "").strip()
+    return "N/A"
 
 # Parent Function to scrape first ID
 def scrape_first_patch_details(patch_ids):
@@ -135,7 +229,7 @@ def scrape_first_patch_details(patch_ids):
     first_id = patch_ids[0]
     url = f"https://www.catalog.update.microsoft.com/ScopedViewInline.aspx?updateid={first_id}"
 
-    # Setup Selenium
+    # Setup Selenium    
     service = Service()
     options = webdriver.ChromeOptions()
     options.add_argument('--headless')
@@ -155,6 +249,16 @@ def scrape_first_patch_details(patch_ids):
         KbId = get_kb_id(soup)
         OS = get_os(soup)
         OS_Version = get_os_version(soup)
+        CPU_Arch = get_cpu_arch(soup)
+        info_url  = more_info(soup)
+        support_url_value = support_url(soup)
+        update_type_value = update_type(soup)
+        get_msrc_severity = get_severity(soup)
+        get_msrc_number = MSRC_number(soup)
+        restart_enable = Restart_Patch(soup)
+        may_request_user = user_input(soup)
+        
+
 
         print(f"\nPatch Details for ID: {first_id}")
         print("Title       :", title)
@@ -165,6 +269,15 @@ def scrape_first_patch_details(patch_ids):
         print("KB_ID       :", KbId)
         print("OS          :", OS)
         print("OS_Version  :", OS_Version)
+        print("CPU_Arch    :", CPU_Arch)
+        print("more_info   :", info_url)
+        print("support_URL :", support_url_value)
+        print("Update_Type :", update_type_value)
+        print("Severity    :", get_msrc_severity)
+        print("MSRC_Number :", get_msrc_number)
+        print("Restart     :", restart_enable) 
+        print("Request_UserInput:", may_request_user)
+
     finally:
         driver.quit()
 
