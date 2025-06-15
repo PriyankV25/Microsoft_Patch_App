@@ -6,6 +6,12 @@ from selenium.webdriver.chrome.service import Service
 from bs4 import BeautifulSoup
 import time
 import re
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+
+
 # Step 1: Get today's folder path
 base_dir = os.getcwd()
 today_str = datetime.now().strftime("%Y-%m-%d")
@@ -49,7 +55,40 @@ def get_title(soup):
         return span.text.strip() if span else "N/A"
     return "N/A"
 
-# Child Function 2: Get Date
+# Child Function 2: Patch_title_category
+def Patch_title_category(soup):
+    categories = [
+        "CumulativeUpdate", "SafeOSDynamicUpdate", "SetupDynamicUpdate", ".NET", "QualityUpdate", 
+        "MonthlyQualityRollup", "CumulativeSecurityUpdate", "ServicingStackUpdate", 
+        "DynamicUpdate", "DynamicCumulativeUpdate"
+    ]
+
+    title = get_title(soup).replace(" ", "")  # Remove all spaces to normalize
+    title_upper = title.upper()  # Optional: to make matching case-insensitive
+
+    for category in categories:
+        if category.upper() in title_upper:
+            return category
+    return "N/A"
+
+# Child Function 3: Patch_for
+def Patch_for(soup):
+    title = get_title(soup)
+    title_lower = title.lower()
+
+    if title_lower.count("for") >= 2:
+        # Match text between two 'for' (non-greedy)
+        match = re.search(r'for\s+(.*?)\s+for', title_lower, re.IGNORECASE)
+        if match:
+            return match.group(1).strip().title()
+    elif title_lower.count("for") == 1:
+        # Match everything after 'for' and before (KB...) if exists
+        match = re.search(r'for\s+(.*?)(\s*\(kb.*?\))?$', title, re.IGNORECASE)
+        if match:
+            return match.group(1).strip()
+    return "N/A"
+
+# Child Function 4: Get Date
 def get_date(soup):
     date_div = soup.find("div", {"id": "dateDiv"})
     if date_div:
@@ -57,7 +96,7 @@ def get_date(soup):
         return span.text.strip() if span else "N/A"
     return "N/A"
 
-# Child Function 3: Get Size
+# Child Function 5: Get Size
 def get_size(soup):
     size_div = soup.find("div", {"id": "sizeDiv"})
     if size_div:
@@ -65,7 +104,7 @@ def get_size(soup):
         return span.text.strip() if span else "N/A"
     return "N/A"
 
-# Child Function 4: Get Description
+# Child Function 6: Get Description
 def get_desc(soup):
     desc_div = soup.find("div", {"id": "descDiv"})
     if desc_div:
@@ -73,7 +112,7 @@ def get_desc(soup):
         return span.text.strip() if span else "N/A"
     return "N/A"
 
-# Child Function 5: Get Architecture
+# Child Function 7: Get Architecture
 def get_architecture(soup):
     title = get_title(soup)
     if "x64" in title:
@@ -83,7 +122,7 @@ def get_architecture(soup):
     else:
         return "N/A"
     
-# Child Function 6: Get KB ID
+# Child Function 8: Get KB ID
 def get_kb_id(soup):
     title = get_title(soup)
     match = re.search(r"\(KB\d+\)", title)
@@ -91,7 +130,7 @@ def get_kb_id(soup):
         return match.group(0).strip("()")  # remove parentheses
     return "N/A"
 
-# Child Function 7: Get OS
+# Child Function 9: Get OS
 def get_os(soup):
     title = get_title(soup)
 
@@ -107,7 +146,7 @@ def get_os(soup):
 
     return "N/A"
 
-# Child Function 8: Get OS_Version  [AMD=1, Intel=2, ARM=3]
+# Child Function 10: Get OS_Version  [AMD=1, Intel=2, ARM=3]
 def get_os_version(soup):
     title = get_title(soup)
 
@@ -125,7 +164,7 @@ def get_os_version(soup):
 
     return "N/A"
 
-# Child Function 9: get_cpu_arch
+# Child Function 11: get_cpu_arch
 def get_cpu_arch(soup):
     cpu_keywords = ["AMD", "ARM", "INTEL"]
     
@@ -141,7 +180,7 @@ def get_cpu_arch(soup):
         pass
     return "1, 2, 3"
 
-# Child Function 10: Get More Information URL
+# Child Function 12: Get More Information URL
 def more_info(soup):
     kb_id = get_kb_id(soup)  # e.g., "KB5022282"
     if kb_id == "N/A":
@@ -160,7 +199,7 @@ def more_info(soup):
     # Fallback if not found in page
     return f"https://support.microsoft.com/help/{kb_no}"
 
-# Child Function 11: Get support_url 
+# Child Function 13: Get support_url 
 def support_url(soup):
     kb_id = get_kb_id(soup)  # e.g., "KB5022282"
     if kb_id == "N/A":
@@ -179,7 +218,7 @@ def support_url(soup):
     # Fallback URL if no match is found
     return f"https://support.microsoft.com/help/{kb_no}"
 
-# Child Function 12: Get update_type
+# Child Function 14: Get update_type
 def update_type(soup):
     classification_div = soup.find("div", {"id": "classificationDiv"})
     if classification_div:
@@ -187,23 +226,27 @@ def update_type(soup):
         return text
     return "N/A"
 
-# Child Function 13: Get severity
+# Child Function 15: Get severity       Modified
 def get_severity(soup):
     severity_div = soup.find("div", {"id": "msrcSeverityDiv"})
     if severity_div:
         text = severity_div.text.replace("MSRC severity:", "").strip()
+        if text.lower() == "n/a" or text == "":
+            return "N/A"
         return text
     return "N/A"
 
-# Child Function 14: Get MSRC_number
+# Child Function 16: Get MSRC_number    Modified
 def MSRC_number(soup):
     bulletin_div = soup.find("div", {"id": "securityBullitenDiv"})
     if bulletin_div:
         text = bulletin_div.text.replace("MSRC Number:", "").strip()
+        if text.lower() == "n/a" or text == "":
+            return "N/A"
         return text
     return "N/A"
 
-# Child Function 15: Restart_Patch enable/disable [enable=1, disable=0]
+# Child Function 17: Restart_Patch enable/disable [enable=1, disable=0]
 def Restart_Patch(soup):
     reboot_div = soup.find("div", {"id": "rebootBehaviorDiv"})
     if reboot_div:
@@ -212,13 +255,52 @@ def Restart_Patch(soup):
             return 1
     return 0
 
-# Child Function 16: user_input
+# Child Function 18: user_input
 def user_input(soup):
     user_input_div = soup.find("div", {"id": "userInputDiv"})
     if user_input_div:
         text = user_input_div.text.strip()
         return text.replace("May request user input:", "").strip()
     return "N/A"
+
+# Child Function 19: Install_impact
+def Install_impact(soup):
+    impact_div = soup.find("div", {"id": "installationImpactDiv"})
+    if impact_div:
+        text = impact_div.text.replace("Must be installed exclusively:", "").strip()
+        return text if text else "N/A"
+    return "N/A"
+
+# Child Function 20: connectivity_requirement
+def connectivity_requirement(soup):
+    conn_div = soup.find("div", {"id": "connectivityDiv"})
+    if conn_div:
+        text = conn_div.text.replace("Requires network connectivity:", "").strip()
+        return text if text else "N/A"
+    return "N/A"
+
+# Child Function 21: Uninstall_patch [enable = 1, diable = 0]
+def Uninstall_patch(soup):
+    uninstall_div = soup.find("div", {"id": "uninstallNotesDiv"})
+    if uninstall_div:
+        text = uninstall_div.text.replace("Uninstall Notes:", "").strip().lower()
+        if text == "n/a" or text == "":
+            return 0
+        return 1
+    return 0
+
+# Child Function 22: Uninstall_steps
+def Uninstall_steps(soup):
+    steps_div = soup.find("div", {"id": "uninstallStepsDiv"})
+    if steps_div:
+        text = steps_div.text.replace("Uninstall Steps:", "").strip()
+        if text.lower() == "n/a" or text == "":
+            return "N/A"
+        return text
+    return "N/A"
+
+
+
 
 # Parent Function to scrape first ID
 def scrape_first_patch_details(patch_ids):
@@ -242,6 +324,8 @@ def scrape_first_patch_details(patch_ids):
 
         # Extract all info
         title = get_title(soup)
+        Title_Category = Patch_title_category(soup)
+        Patching_for = Patch_for(soup)
         date = get_date(soup)
         size = get_size(soup)
         desc = get_desc(soup)
@@ -257,26 +341,37 @@ def scrape_first_patch_details(patch_ids):
         get_msrc_number = MSRC_number(soup)
         restart_enable = Restart_Patch(soup)
         may_request_user = user_input(soup)
+        Installation_Impact = Install_impact(soup)
+        Connectivity = connectivity_requirement(soup)
+        Uninstallation_patch = Uninstall_patch(soup)
+        Uninstallation_steps = Uninstall_steps(soup)
+        
         
 
-
-        print(f"\nPatch Details for ID: {first_id}")
-        print("Title       :", title)
-        print("Date        :", date)
-        print("Size        :", size)
-        print("Description :", desc)
-        print("Architecture:", arch)
-        print("KB_ID       :", KbId)
-        print("OS          :", OS)
-        print("OS_Version  :", OS_Version)
-        print("CPU_Arch    :", CPU_Arch)
-        print("more_info   :", info_url)
-        print("support_URL :", support_url_value)
-        print("Update_Type :", update_type_value)
-        print("Severity    :", get_msrc_severity)
-        print("MSRC_Number :", get_msrc_number)
-        print("Restart     :", restart_enable) 
-        print("Request_UserInput:", may_request_user)
+        print(f"\nPatch Details for ID  : {first_id}")
+        print("Title                    :", title)
+        print("Patch_title_category     :", Title_Category)
+        print("Patch_for                :", Patching_for)
+        print("Date                     :", date)
+        print("Size                     :", size)
+        print("Description              :", desc)
+        print("Architecture             :", arch)
+        print("KB_ID                    :", KbId)
+        print("OS                       :", OS)
+        print("OS_Version               :", OS_Version)
+        print("CPU_Arch                 :", CPU_Arch)
+        print("more_info                :", info_url)
+        print("support_URL              :", support_url_value)
+        print("Update_Type              :", update_type_value)
+        print("Severity                 :", get_msrc_severity)
+        print("MSRC_Number              :", get_msrc_number)
+        print("Restart                  :", restart_enable) 
+        print("Request_UserInput        :", may_request_user)
+        print("Install_impact           :", Installation_Impact)
+        print("Connectivity             :", Connectivity)
+        print("Uninstall_patch          :", Uninstallation_patch)
+        print("Uninstall_steps          :", Uninstallation_steps)
+        
 
     finally:
         driver.quit()
