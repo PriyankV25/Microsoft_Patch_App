@@ -137,7 +137,8 @@ def get_os(soup):
     os_list = [
         "Windows 11", "Windows 10 S", "Windows 10", "Windows 8/8.1",
         "Windows 7", "Windows Vista", "Windows XP", "Windows 2000",
-        "Windows 98", "Windows 95", "Windows 3.1", "Windows 3.0", "Windows 1.0"
+        "Windows 98", "Windows 95", "Windows 3.1", "Windows 3.0", "Windows 1.0",
+        "Windows Server"
     ]
 
     for os_name in os_list:
@@ -164,7 +165,7 @@ def get_os_version(soup):
 
     return "N/A"
 
-#Child Function 11: get_cpu_arch
+# Child Function 11: get_cpu_arch
 # def get_cpu_arch(soup):
 #     cpu_keywords = ["AMD", "ARM", "INTEL"]
     
@@ -181,60 +182,24 @@ def get_os_version(soup):
 #     return "1, 2, 3"
 
 
-#Child Function 11: get_cpu_arch
-# def get_cpu_arch(soup):
-#     AMD_List = ["AMD", "amd", "amd64", "AMD64", "amd86", "AMD86"]
-#     ARM_List = ["ARM", "arm", "arm64", "ARM64", "arm86", "ARM86"]
+# Child Function 11: get_cpu_arch
+def get_cpu_arch(soup):
+    AMD_List = ["AMD", "amd", "amd64", "AMD64", "amd86", "AMD86"]
+    ARM_List = ["ARM", "arm", "arm64", "ARM64", "arm86", "ARM86"]
 
-#     title = get_title(soup)
-#     arch = get_architecture(soup)
+    title = get_title(soup)
+    arch = get_architecture(soup)
 
-#     # Match either title or arch with AMD list
-#     if any(item in title for item in AMD_List) or any(item in arch for item in AMD_List):
-#         return "1, 2"
+    # Match either title or arch with AMD list
+    if any(item in title for item in AMD_List) or any(item in arch for item in AMD_List):
+        return "1, 2"
     
-#     # Match either title or arch with ARM list
-#     if any(item in title for item in ARM_List) or any(item in arch for item in ARM_List):
-#         return "3"
+    # Match either title or arch with ARM list
+    if any(item in title for item in ARM_List) or any(item in arch for item in ARM_List):
+        return "3"
 
-#     # Default case
-#     return "1, 2, 3"
-
-
-# def get_cpu_arch(soup):
-#     AMD_List = ["AMD", "amd", "amd64", "AMD64", "amd86", "AMD86"]
-#     ARM_List = ["ARM", "arm", "arm64", "ARM64", "arm86", "ARM86"]
-
-#     title = get_title(soup).replace(" ", "")  # Remove all spaces
-#     arch = get_architecture(soup)
-
-#     match_found = False
-
-#     for amd in AMD_List:
-#         if amd in title or amd in arch:
-#             return "1, 2"
-
-#     for arm in ARM_List:
-#         if arm in title or arm in arch:
-#             return "3"
-
-#     return "1, 2, 3"
-
-# def get_cpu_arch(soup):
-#     #cpu_keywords = ["AMD", "ARM", "INTEL"]
-    
-#     title = get_title(soup).replace("(", " ").replace(")", " ")  # remove brackets
-#     title_parts = title.replace(",", " ").replace("-", " ").split()  # split on space, comma, dash
-#     arch = get_architecture(soup)
-
-#     if "AMD64" in title_parts or "AMD64" in arch:
-#         return "1, 2"
-#     elif "ARM" in title_parts or "ARM" in arch:
-#         return "3"
-#     else: 
-#         return "1, 2, 3"
-
-
+    # Default case
+    return "1, 2, 3"
 
 
 # Child Function 12: Get More Information URL
@@ -357,83 +322,172 @@ def Uninstall_steps(soup):
     return "N/A"
 
 
+##############################################################################################
 
 
-# Parent Function to scrape first ID
-def scrape_first_patch_details(patch_ids):
+def scrape_patch_details_to_excel(patch_ids):
     if not patch_ids:
         print("No patch IDs found.")
         return
 
-    first_id = "c7ce6b24-00a1-4018-aeeb-13ae57b15b51"
-    url = f"https://www.catalog.update.microsoft.com/ScopedViewInline.aspx?updateid={first_id}"
-
-    # Setup Selenium    
+    # Setup Selenium once
     service = Service()
     options = webdriver.ChromeOptions()
     options.add_argument('--headless')
     driver = webdriver.Chrome(service=service, options=options)
 
+    all_patch_data = []
+
     try:
-        driver.get(url)
-        time.sleep(5)
-        soup = BeautifulSoup(driver.page_source, 'html.parser')
+        for idx, patch_id in enumerate(patch_ids, start=1):
+            url = f"https://www.catalog.update.microsoft.com/ScopedViewInline.aspx?updateid={patch_id}"
+            print(f"\n[{idx}/{len(patch_ids)}] Fetching patch details for Update ID: {patch_id}")
 
-        # Extract all info
-        title = get_title(soup)
-        Title_Category = Patch_title_category(soup)
-        Patching_for = Patch_for(soup)
-        date = get_date(soup)
-        size = get_size(soup)
-        desc = get_desc(soup)
-        arch = get_architecture(soup)
-        KbId = get_kb_id(soup)
-        OS = get_os(soup)
-        OS_Version = get_os_version(soup)
-        CPU_Arch = get_cpu_arch(soup)
-        info_url  = more_info(soup)
-        support_url_value = support_url(soup)
-        update_type_value = update_type(soup)
-        get_msrc_severity = get_severity(soup)
-        get_msrc_number = MSRC_number(soup)
-        restart_enable = Restart_Patch(soup)
-        may_request_user = user_input(soup)
-        Installation_Impact = Install_impact(soup)
-        Connectivity = connectivity_requirement(soup)
-        Uninstallation_patch = Uninstall_patch(soup)
-        Uninstallation_steps = Uninstall_steps(soup)
-        
-        
+            try:
+                driver.get(url)
+                time.sleep(4)
+                soup = BeautifulSoup(driver.page_source, 'html.parser')
 
-        print(f"\nPatch Details for ID  : {first_id}")
-        print("Title                    :", title)
-        print("Patch_title_category     :", Title_Category)
-        print("Patch_for                :", Patching_for)
-        print("Date                     :", date)
-        print("Size                     :", size)
-        print("Description              :", desc)
-        print("Architecture             :", arch)
-        print("KB_ID                    :", KbId)
-        print("OS                       :", OS)
-        print("OS_Version               :", OS_Version)
-        print("CPU_Arch                 :", CPU_Arch)
-        print("more_info                :", info_url)
-        print("support_URL              :", support_url_value)
-        print("Update_Type              :", update_type_value)
-        print("Severity                 :", get_msrc_severity)
-        print("MSRC_Number              :", get_msrc_number)
-        print("Restart                  :", restart_enable) 
-        print("Request_UserInput        :", may_request_user)
-        print("Install_impact           :", Installation_Impact)
-        print("Connectivity             :", Connectivity)
-        print("Uninstall_patch          :", Uninstallation_patch)
-        print("Uninstall_steps          :", Uninstallation_steps)
-        
+                # Append all extracted values into a dictionary
+                patch_data = {
+                    "Update_ID": patch_id,
+                    "Title": get_title(soup),
+                    "Patch_title_category": Patch_title_category(soup),
+                    "Patch_for": Patch_for(soup),
+                    "Date": get_date(soup),
+                    "Size": get_size(soup),
+                    "Description": get_desc(soup),
+                    "Architecture": get_architecture(soup),
+                    "KB_ID": get_kb_id(soup),
+                    "OS": get_os(soup),
+                    "OS_Version": get_os_version(soup),
+                    "CPU_Arch": get_cpu_arch(soup),
+                    "More_Info_URL": more_info(soup),
+                    "Support_URL": support_url(soup),
+                    "Update_Type": update_type(soup),
+                    "Severity": get_severity(soup),
+                    "MSRC_Number": MSRC_number(soup),
+                    "Restart_Required": Restart_Patch(soup),
+                    "Request_UserInput": user_input(soup),
+                    "Install_Impact": Install_impact(soup),
+                    "Connectivity_Required": connectivity_requirement(soup),
+                    "Uninstall_Enabled": Uninstall_patch(soup),
+                    "Uninstall_Steps": Uninstall_steps(soup)
+                }
+
+                all_patch_data.append(patch_data)
+
+            except Exception as e:
+                print(f"Failed to fetch details for ID {patch_id}: {e}")
 
     finally:
         driver.quit()
 
-scrape_first_patch_details(all_ids)
+    # Convert list of dicts to DataFrame
+    df = pd.DataFrame(all_patch_data)
+
+    # Create today's folder path again
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    folder_name = f"Patch-{today_str}"
+    base_dir = os.getcwd()
+    folder_path = os.path.join(base_dir, folder_name)
+
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+
+    output_file = os.path.join(folder_path, "patch_details.xlsx")
+    df.to_excel(output_file, index=False)
+    print(f"\n✅ Patch details saved to: {output_file}")
 
 
 
+
+scrape_patch_details_to_excel(all_ids)
+
+
+
+
+
+
+########################################################################################
+# # Parent Function to scrape all IDs
+# def scrape_patch_details(patch_ids):
+#     if not patch_ids:
+#         print("No patch IDs found.")
+#         return
+
+#     # Setup Selenium outside the loop for better performance
+#     service = Service()
+#     options = webdriver.ChromeOptions()
+#     options.add_argument('--headless')
+#     driver = webdriver.Chrome(service=service, options=options)
+
+#     try:
+#         for idx, patch_id in enumerate(patch_ids, start=1):
+#             url = f"https://www.catalog.update.microsoft.com/ScopedViewInline.aspx?updateid={patch_id}"
+#             print(f"\n[{idx}/{len(patch_ids)}] Fetching patch details for Update ID: {patch_id}")
+            
+#             try:
+#                 driver.get(url)
+#                 time.sleep(4)  # Small delay to let page load
+#                 soup = BeautifulSoup(driver.page_source, 'html.parser')
+
+#                 # Extract all info
+#                 title = get_title(soup)
+#                 Title_Category = Patch_title_category(soup)
+#                 Patching_for = Patch_for(soup)
+#                 date = get_date(soup)
+#                 size = get_size(soup)
+#                 desc = get_desc(soup)
+#                 arch = get_architecture(soup)
+#                 KbId = get_kb_id(soup)
+#                 OS = get_os(soup)
+#                 OS_Version = get_os_version(soup)
+#                 CPU_Arch = get_cpu_arch(soup)
+#                 info_url = more_info(soup)
+#                 support_url_value = support_url(soup)
+#                 update_type_value = update_type(soup)
+#                 get_msrc_severity = get_severity(soup)
+#                 get_msrc_number = MSRC_number(soup)
+#                 restart_enable = Restart_Patch(soup)
+#                 may_request_user = user_input(soup)
+#                 Installation_Impact = Install_impact(soup)
+#                 Connectivity = connectivity_requirement(soup)
+#                 Uninstallation_patch = Uninstall_patch(soup)
+#                 Uninstallation_steps = Uninstall_steps(soup)
+
+#                 # Print summary for each patch
+#                 print("Update_ID                :", patch_id)
+#                 print("Title                    :", title)
+#                 print("Patch_title_category     :", Title_Category)
+#                 print("Patch_for                :", Patching_for)
+#                 print("Date                     :", date)
+#                 print("Size                     :", size)
+#                 print("Description              :", desc)
+#                 print("Architecture             :", arch)
+#                 print("KB_ID                    :", KbId)
+#                 print("OS                       :", OS)
+#                 print("OS_Version               :", OS_Version)
+#                 print("CPU_Arch                 :", CPU_Arch)
+#                 print("more_info                :", info_url)
+#                 print("support_URL              :", support_url_value)
+#                 print("Update_Type              :", update_type_value)
+#                 print("Severity                 :", get_msrc_severity)
+#                 print("MSRC_Number              :", get_msrc_number)
+#                 print("Restart                  :", restart_enable) 
+#                 print("Request_UserInput        :", may_request_user)
+#                 print("Install_impact           :", Installation_Impact)
+#                 print("Connectivity             :", Connectivity)
+#                 print("Uninstall_patch          :", Uninstallation_patch)
+#                 print("Uninstall_steps          :", Uninstallation_steps)
+
+#             except Exception as e:
+#                 print(f"Failed to fetch details for ID {patch_id}: {e}")
+
+#     finally:
+#         driver.quit()
+
+
+# # Call the updated function
+# scrape_patch_details(all_ids)
+##################################################################################

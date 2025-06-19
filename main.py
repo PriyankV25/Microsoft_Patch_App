@@ -130,7 +130,7 @@ def scrape_all_pages(query: str, total_pages: int) -> list:
 
 # --- Main Execution ---
 if __name__ == "__main__":
-    query = "2025-05"
+    query = "2025-06"
     url = build_search_url(query)
 
     summary, page_count = get_update_summary_info(url)
