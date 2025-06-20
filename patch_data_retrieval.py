@@ -111,16 +111,6 @@ def get_desc(soup):
         span = desc_div.find("span", {"id": "ScopedViewHandler_desc"})
         return span.text.strip() if span else "N/A"
     return "N/A"
-
-# Child Function 7: Get Architecture
-def get_architecture(soup):
-    title = get_title(soup)
-    if "x64" in title:
-        return "x64"
-    elif "x86" in title:
-        return "x86"
-    else:
-        return "N/A"
     
 # Child Function 8: Get KB ID
 def get_kb_id(soup):
@@ -146,7 +136,7 @@ def get_os(soup):
 
     return "N/A"
 
-# Child Function 10: Get OS_Version  [AMD=1, Intel=2, ARM=3]
+# Child Function 10: Get OS_Version  
 def get_os_version(soup):
     title = get_title(soup)
 
@@ -164,80 +154,42 @@ def get_os_version(soup):
 
     return "N/A"
 
-#Child Function 11: get_cpu_arch
-# def get_cpu_arch(soup):
-#     cpu_keywords = ["AMD", "ARM", "INTEL"]
+# Child Function 11: Get_arch_details  [AMD,ARM][64,86]
+def Get_arch_details(soup):
+    arch_div = soup.find("div", {"id": "archDiv"})
+    if arch_div:
+        text = arch_div.text.strip().replace("Architecture:", "").strip()
+        return text if text else "N/A"
+    return "N/A"
+
+#Child Function 12: get_cpu_arch  [AMD=1, Intel=2, ARM=3]
+def get_cpu_arch(soup):
+    cpu_keywords = ["AMD", "ARM", "INTEL"]
     
-#     title = get_title(soup).upper()
-#     arch = get_architecture(soup).upper()
+    title = get_title(soup).upper()
+    arch = Get_arch_details(soup).upper()
 
-#     if "AMD" in title or "AMD" in arch:
-#         return "1, 2"
-#     elif "ARM" in title or "ARM" in arch:
-#         return "3"
-#     elif any(cpu in title or cpu in arch for cpu in cpu_keywords):
-#         # If matched with any specific keyword, already handled above
-#         pass
-#     return "1, 2, 3"
-
-
-#Child Function 11: get_cpu_arch
-# def get_cpu_arch(soup):
-#     AMD_List = ["AMD", "amd", "amd64", "AMD64", "amd86", "AMD86"]
-#     ARM_List = ["ARM", "arm", "arm64", "ARM64", "arm86", "ARM86"]
-
-#     title = get_title(soup)
-#     arch = get_architecture(soup)
-
-#     # Match either title or arch with AMD list
-#     if any(item in title for item in AMD_List) or any(item in arch for item in AMD_List):
-#         return "1, 2"
+    if "AMD" in title or "AMD" in arch:
+        return "1, 2"
+    elif "ARM" in title or "ARM" in arch:
+        return "3"
+    else:
+        return "1, 2, 3"
     
-#     # Match either title or arch with ARM list
-#     if any(item in title for item in ARM_List) or any(item in arch for item in ARM_List):
-#         return "3"
+# Child Function 13: Get get_architecture
+def get_architecture(soup):
+    title = get_title(soup)
+    title_filter = title[:-12]
+    archiT = Get_arch_details(soup)
 
-#     # Default case
-#     return "1, 2, 3"
+    if "64" in title_filter or "64" in archiT:
+        return "x64"
+    elif "86" in title_filter or "86" in archiT:
+        return "x86"
+    else:
+        return "N/A"
 
-
-# def get_cpu_arch(soup):
-#     AMD_List = ["AMD", "amd", "amd64", "AMD64", "amd86", "AMD86"]
-#     ARM_List = ["ARM", "arm", "arm64", "ARM64", "arm86", "ARM86"]
-
-#     title = get_title(soup).replace(" ", "")  # Remove all spaces
-#     arch = get_architecture(soup)
-
-#     match_found = False
-
-#     for amd in AMD_List:
-#         if amd in title or amd in arch:
-#             return "1, 2"
-
-#     for arm in ARM_List:
-#         if arm in title or arm in arch:
-#             return "3"
-
-#     return "1, 2, 3"
-
-# def get_cpu_arch(soup):
-#     #cpu_keywords = ["AMD", "ARM", "INTEL"]
-    
-#     title = get_title(soup).replace("(", " ").replace(")", " ")  # remove brackets
-#     title_parts = title.replace(",", " ").replace("-", " ").split()  # split on space, comma, dash
-#     arch = get_architecture(soup)
-
-#     if "AMD64" in title_parts or "AMD64" in arch:
-#         return "1, 2"
-#     elif "ARM" in title_parts or "ARM" in arch:
-#         return "3"
-#     else: 
-#         return "1, 2, 3"
-
-
-
-
-# Child Function 12: Get More Information URL
+# Child Function 14: Get More Information URL
 def more_info(soup):
     kb_id = get_kb_id(soup)  # e.g., "KB5022282"
     if kb_id == "N/A":
@@ -256,7 +208,7 @@ def more_info(soup):
     # Fallback if not found in page
     return f"https://support.microsoft.com/help/{kb_no}"
 
-# Child Function 13: Get support_url 
+# Child Function 15: Get support_url 
 def support_url(soup):
     kb_id = get_kb_id(soup)  # e.g., "KB5022282"
     if kb_id == "N/A":
@@ -275,7 +227,7 @@ def support_url(soup):
     # Fallback URL if no match is found
     return f"https://support.microsoft.com/help/{kb_no}"
 
-# Child Function 14: Get update_type
+# Child Function 16: Get update_type
 def update_type(soup):
     classification_div = soup.find("div", {"id": "classificationDiv"})
     if classification_div:
@@ -283,7 +235,7 @@ def update_type(soup):
         return text
     return "N/A"
 
-# Child Function 15: Get severity       Modified
+# Child Function 17: Get severity       Modified
 def get_severity(soup):
     severity_div = soup.find("div", {"id": "msrcSeverityDiv"})
     if severity_div:
@@ -293,7 +245,7 @@ def get_severity(soup):
         return text
     return "N/A"
 
-# Child Function 16: Get MSRC_number    Modified
+# Child Function 18: Get MSRC_number    Modified
 def MSRC_number(soup):
     bulletin_div = soup.find("div", {"id": "securityBullitenDiv"})
     if bulletin_div:
@@ -303,7 +255,7 @@ def MSRC_number(soup):
         return text
     return "N/A"
 
-# Child Function 17: Restart_Patch enable/disable [enable=1, disable=0]
+# Child Function 19: Restart_Patch enable/disable [enable=1, disable=0]
 def Restart_Patch(soup):
     reboot_div = soup.find("div", {"id": "rebootBehaviorDiv"})
     if reboot_div:
@@ -320,7 +272,7 @@ def user_input(soup):
         return text.replace("May request user input:", "").strip()
     return "N/A"
 
-# Child Function 19: Install_impact
+# Child Function 20: Install_impact
 def Install_impact(soup):
     impact_div = soup.find("div", {"id": "installationImpactDiv"})
     if impact_div:
@@ -328,7 +280,7 @@ def Install_impact(soup):
         return text if text else "N/A"
     return "N/A"
 
-# Child Function 20: connectivity_requirement
+# Child Function 21: connectivity_requirement
 def connectivity_requirement(soup):
     conn_div = soup.find("div", {"id": "connectivityDiv"})
     if conn_div:
@@ -336,7 +288,7 @@ def connectivity_requirement(soup):
         return text if text else "N/A"
     return "N/A"
 
-# Child Function 21: Uninstall_patch [enable = 1, diable = 0]
+# Child Function 22: Uninstall_patch [enable = 1, diable = 0]
 def Uninstall_patch(soup):
     uninstall_div = soup.find("div", {"id": "uninstallNotesDiv"})
     if uninstall_div:
@@ -346,7 +298,7 @@ def Uninstall_patch(soup):
         return 1
     return 0
 
-# Child Function 22: Uninstall_steps
+# Child Function 23: Uninstall_steps
 def Uninstall_steps(soup):
     steps_div = soup.find("div", {"id": "uninstallStepsDiv"})
     if steps_div:
@@ -365,7 +317,7 @@ def scrape_first_patch_details(patch_ids):
         print("No patch IDs found.")
         return
 
-    first_id = "c7ce6b24-00a1-4018-aeeb-13ae57b15b51"
+    first_id = "1d4fee18-389f-433f-b525-f6bf9a222c25"
     url = f"https://www.catalog.update.microsoft.com/ScopedViewInline.aspx?updateid={first_id}"
 
     # Setup Selenium    
@@ -386,11 +338,12 @@ def scrape_first_patch_details(patch_ids):
         date = get_date(soup)
         size = get_size(soup)
         desc = get_desc(soup)
-        arch = get_architecture(soup)
         KbId = get_kb_id(soup)
         OS = get_os(soup)
         OS_Version = get_os_version(soup)
+        get_architecture_Details = Get_arch_details(soup)
         CPU_Arch = get_cpu_arch(soup)
+        arch = get_architecture(soup)
         info_url  = more_info(soup)
         support_url_value = support_url(soup)
         update_type_value = update_type(soup)
@@ -412,11 +365,12 @@ def scrape_first_patch_details(patch_ids):
         print("Date                     :", date)
         print("Size                     :", size)
         print("Description              :", desc)
-        print("Architecture             :", arch)
         print("KB_ID                    :", KbId)
         print("OS                       :", OS)
         print("OS_Version               :", OS_Version)
+        print("Get_arch_data            :", get_architecture_Details)
         print("CPU_Arch                 :", CPU_Arch)
+        print("Architecture             :", arch)
         print("more_info                :", info_url)
         print("support_URL              :", support_url_value)
         print("Update_Type              :", update_type_value)

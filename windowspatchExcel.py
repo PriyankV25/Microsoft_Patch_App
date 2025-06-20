@@ -48,6 +48,283 @@ else:
 
 
 # Child Function 1: Get Title
+# def get_title(soup):
+#     title_div = soup.find("div", {"id": "titleDiv"})
+#     if title_div:
+#         span = title_div.find("span", {"id": "ScopedViewHandler_titleText"})
+#         return span.text.strip() if span else "N/A"
+#     return "N/A"
+
+# # Child Function 2: Patch_title_category
+# def Patch_title_category(soup):
+#     categories = [
+#         "CumulativeUpdate", "SafeOSDynamicUpdate", "SetupDynamicUpdate", ".NET", "QualityUpdate", 
+#         "MonthlyQualityRollup", "CumulativeSecurityUpdate", "ServicingStackUpdate", 
+#         "DynamicUpdate", "DynamicCumulativeUpdate"
+#     ]
+
+#     title = get_title(soup).replace(" ", "")  # Remove all spaces to normalize
+#     title_upper = title.upper()  # Optional: to make matching case-insensitive
+
+#     for category in categories:
+#         if category.upper() in title_upper:
+#             return category
+#     return "N/A"
+
+# # Child Function 3: Patch_for
+# def Patch_for(soup):
+#     title = get_title(soup)
+#     title_lower = title.lower()
+
+#     if title_lower.count("for") >= 2:
+#         # Match text between two 'for' (non-greedy)
+#         match = re.search(r'for\s+(.*?)\s+for', title_lower, re.IGNORECASE)
+#         if match:
+#             return match.group(1).strip().title()
+#     elif title_lower.count("for") == 1:
+#         # Match everything after 'for' and before (KB...) if exists
+#         match = re.search(r'for\s+(.*?)(\s*\(kb.*?\))?$', title, re.IGNORECASE)
+#         if match:
+#             return match.group(1).strip()
+#     return "N/A"
+
+# # Child Function 4: Get Date
+# def get_date(soup):
+#     date_div = soup.find("div", {"id": "dateDiv"})
+#     if date_div:
+#         span = date_div.find("span", {"id": "ScopedViewHandler_date"})
+#         return span.text.strip() if span else "N/A"
+#     return "N/A"
+
+# # Child Function 5: Get Size
+# def get_size(soup):
+#     size_div = soup.find("div", {"id": "sizeDiv"})
+#     if size_div:
+#         span = size_div.find("span", {"id": "ScopedViewHandler_size"})
+#         return span.text.strip() if span else "N/A"
+#     return "N/A"
+
+# # Child Function 6: Get Description
+# def get_desc(soup):
+#     desc_div = soup.find("div", {"id": "descDiv"})
+#     if desc_div:
+#         span = desc_div.find("span", {"id": "ScopedViewHandler_desc"})
+#         return span.text.strip() if span else "N/A"
+#     return "N/A"
+
+# # Child Function 7: Get Architecture
+# def get_architecture(soup):
+#     title = get_title(soup)
+#     if "x64" in title:
+#         return "x64"
+#     elif "x86" in title:
+#         return "x86"
+#     else:
+#         return "N/A"
+    
+# # Child Function 8: Get KB ID
+# def get_kb_id(soup):
+#     title = get_title(soup)
+#     match = re.search(r"\(KB\d+\)", title)
+#     if match:
+#         return match.group(0).strip("()")  # remove parentheses
+#     return "N/A"
+
+# # Child Function 9: Get OS
+# def get_os(soup):
+#     title = get_title(soup)
+
+#     os_list = [
+#         "Windows 11", "Windows 10 S", "Windows 10", "Windows 8/8.1",
+#         "Windows 7", "Windows Vista", "Windows XP", "Windows 2000",
+#         "Windows 98", "Windows 95", "Windows 3.1", "Windows 3.0", "Windows 1.0",
+#         "Windows Server"
+#     ]
+
+#     for os_name in os_list:
+#         if os_name in title:
+#             return os_name
+
+#     return "N/A"
+
+# # Child Function 10: Get OS_Version  [AMD=1, Intel=2, ARM=3]
+# def get_os_version(soup):
+#     title = get_title(soup)
+
+#     version_list = [
+#         "NT 3.1", "NT 3.5", "NT 3.51", "NT 4.0",
+#         "2000", "2003", "2003 R2", "2008", "2008 R2", "2012", "2012 R2",
+#         "2016", "2019", "2022",
+#         "19H1", "19H2", "20H1", "20H2", "21H1", "21H2", "22H2", "23H2", "24H2",
+#         "1507", "1511", "1607", "1703", "1803", "1809", "1903", "1909", "2004"
+#     ]
+
+#     for version in version_list:
+#         if version in title:
+#             return version
+
+#     return "N/A"
+
+# Child Function 11: get_cpu_arch
+# def get_cpu_arch(soup):
+#     cpu_keywords = ["AMD", "ARM", "INTEL"]
+    
+#     title = get_title(soup).upper()
+#     arch = get_architecture(soup).upper()
+
+#     if "AMD" in title or "AMD" in arch:
+#         return "1, 2"
+#     elif "ARM" in title or "ARM" in arch:
+#         return "3"
+#     elif any(cpu in title or cpu in arch for cpu in cpu_keywords):
+#         # If matched with any specific keyword, already handled above
+#         pass
+#     return "1, 2, 3"
+
+
+# Child Function 11: get_cpu_arch
+# def get_cpu_arch(soup):
+#     AMD_List = ["AMD", "amd", "amd64", "AMD64", "amd86", "AMD86"]
+#     ARM_List = ["ARM", "arm", "arm64", "ARM64", "arm86", "ARM86"]
+
+#     title = get_title(soup)
+#     arch = get_architecture(soup)
+
+#     # Match either title or arch with AMD list
+#     if any(item in title for item in AMD_List) or any(item in arch for item in AMD_List):
+#         return "1, 2"
+    
+#     # Match either title or arch with ARM list
+#     if any(item in title for item in ARM_List) or any(item in arch for item in ARM_List):
+#         return "3"
+
+#     # Default case
+#     return "1, 2, 3"
+
+
+
+# # # Child Function 12: Get More Information URL
+# # def more_info(soup):
+# #     kb_id = get_kb_id(soup)  # e.g., "KB5022282"
+# #     if kb_id == "N/A":
+# #         return "N/A"
+    
+# #     kb_no = kb_id.replace("KB", "")  # e.g., "5022282"
+
+# #     more_info_div = soup.find("div", {"id": "moreInfoDiv"})
+# #     if more_info_div:
+# #         anchors = more_info_div.find_all("a", href=True)
+# #         for a in anchors:
+# #             href = a['href']
+# #             if kb_no in href:
+# #                 return href.strip()
+
+# #     # Fallback if not found in page
+# #     return f"https://support.microsoft.com/help/{kb_no}"
+
+# # # Child Function 13: Get support_url 
+# # def support_url(soup):
+# #     kb_id = get_kb_id(soup)  # e.g., "KB5022282"
+# #     if kb_id == "N/A":
+# #         return "N/A"
+
+# #     kb_no = kb_id.replace("KB", "")  # e.g., "5022282"
+
+# #     support_div = soup.find("div", {"id": "suportUrlDiv"})
+# #     if support_div:
+# #         anchors = support_div.find_all("a", href=True)
+# #         for a in anchors:
+# #             href = a['href']
+# #             if kb_no in href:
+# #                 return href.strip()
+
+# #     # Fallback URL if no match is found
+# #     return f"https://support.microsoft.com/help/{kb_no}"
+
+# # # Child Function 14: Get update_type
+# # def update_type(soup):
+# #     classification_div = soup.find("div", {"id": "classificationDiv"})
+# #     if classification_div:
+# #         text = classification_div.text.replace("Classification:", "").strip()
+# #         return text
+# #     return "N/A"
+
+# # # Child Function 15: Get severity       Modified
+# # def get_severity(soup):
+# #     severity_div = soup.find("div", {"id": "msrcSeverityDiv"})
+# #     if severity_div:
+# #         text = severity_div.text.replace("MSRC severity:", "").strip()
+# #         if text.lower() == "n/a" or text == "":
+# #             return "N/A"
+# #         return text
+# #     return "N/A"
+
+# # # Child Function 16: Get MSRC_number    Modified
+# # def MSRC_number(soup):
+# #     bulletin_div = soup.find("div", {"id": "securityBullitenDiv"})
+# #     if bulletin_div:
+# #         text = bulletin_div.text.replace("MSRC Number:", "").strip()
+# #         if text.lower() == "n/a" or text == "":
+# #             return "N/A"
+# #         return text
+# #     return "N/A"
+
+# # # Child Function 17: Restart_Patch enable/disable [enable=1, disable=0]
+# # def Restart_Patch(soup):
+# #     reboot_div = soup.find("div", {"id": "rebootBehaviorDiv"})
+# #     if reboot_div:
+# #         text = reboot_div.text.strip()
+# #         if "Can request restart" in text:
+# #             return 1
+# #     return 0
+
+# # # Child Function 18: user_input
+# # def user_input(soup):
+# #     user_input_div = soup.find("div", {"id": "userInputDiv"})
+# #     if user_input_div:
+# #         text = user_input_div.text.strip()
+# #         return text.replace("May request user input:", "").strip()
+# #     return "N/A"
+
+# # # Child Function 19: Install_impact
+# # def Install_impact(soup):
+# #     impact_div = soup.find("div", {"id": "installationImpactDiv"})
+# #     if impact_div:
+# #         text = impact_div.text.replace("Must be installed exclusively:", "").strip()
+# #         return text if text else "N/A"
+# #     return "N/A"
+
+# # # Child Function 20: connectivity_requirement
+# # def connectivity_requirement(soup):
+# #     conn_div = soup.find("div", {"id": "connectivityDiv"})
+# #     if conn_div:
+# #         text = conn_div.text.replace("Requires network connectivity:", "").strip()
+# #         return text if text else "N/A"
+# #     return "N/A"
+
+# # # Child Function 21: Uninstall_patch [enable = 1, diable = 0]
+# # def Uninstall_patch(soup):
+# #     uninstall_div = soup.find("div", {"id": "uninstallNotesDiv"})
+# #     if uninstall_div:
+# #         text = uninstall_div.text.replace("Uninstall Notes:", "").strip().lower()
+# #         if text == "n/a" or text == "":
+# #             return 0
+# #         return 1
+# #     return 0
+
+# # # Child Function 22: Uninstall_steps
+# # def Uninstall_steps(soup):
+#     steps_div = soup.find("div", {"id": "uninstallStepsDiv"})
+#     if steps_div:
+#         text = steps_div.text.replace("Uninstall Steps:", "").strip()
+#         if text.lower() == "n/a" or text == "":
+#             return "N/A"
+#         return text
+#     return "N/A"
+
+
+
+# Child Function 1: Get Title
 def get_title(soup):
     title_div = soup.find("div", {"id": "titleDiv"})
     if title_div:
@@ -111,16 +388,6 @@ def get_desc(soup):
         span = desc_div.find("span", {"id": "ScopedViewHandler_desc"})
         return span.text.strip() if span else "N/A"
     return "N/A"
-
-# Child Function 7: Get Architecture
-def get_architecture(soup):
-    title = get_title(soup)
-    if "x64" in title:
-        return "x64"
-    elif "x86" in title:
-        return "x86"
-    else:
-        return "N/A"
     
 # Child Function 8: Get KB ID
 def get_kb_id(soup):
@@ -137,8 +404,7 @@ def get_os(soup):
     os_list = [
         "Windows 11", "Windows 10 S", "Windows 10", "Windows 8/8.1",
         "Windows 7", "Windows Vista", "Windows XP", "Windows 2000",
-        "Windows 98", "Windows 95", "Windows 3.1", "Windows 3.0", "Windows 1.0",
-        "Windows Server"
+        "Windows 98", "Windows 95", "Windows 3.1", "Windows 3.0", "Windows 1.0"
     ]
 
     for os_name in os_list:
@@ -147,7 +413,7 @@ def get_os(soup):
 
     return "N/A"
 
-# Child Function 10: Get OS_Version  [AMD=1, Intel=2, ARM=3]
+# Child Function 10: Get OS_Version  
 def get_os_version(soup):
     title = get_title(soup)
 
@@ -165,44 +431,42 @@ def get_os_version(soup):
 
     return "N/A"
 
-# Child Function 11: get_cpu_arch
-# def get_cpu_arch(soup):
-#     cpu_keywords = ["AMD", "ARM", "INTEL"]
-    
-#     title = get_title(soup).upper()
-#     arch = get_architecture(soup).upper()
+# Child Function 11: Get_arch_details  [AMD,ARM][64,86]
+def Get_arch_details(soup):
+    arch_div = soup.find("div", {"id": "archDiv"})
+    if arch_div:
+        text = arch_div.text.strip().replace("Architecture:", "").strip()
+        return text if text else "N/A"
+    return "N/A"
 
-#     if "AMD" in title or "AMD" in arch:
-#         return "1, 2"
-#     elif "ARM" in title or "ARM" in arch:
-#         return "3"
-#     elif any(cpu in title or cpu in arch for cpu in cpu_keywords):
-#         # If matched with any specific keyword, already handled above
-#         pass
-#     return "1, 2, 3"
-
-
-# Child Function 11: get_cpu_arch
+#Child Function 12: get_cpu_arch  [AMD=1, Intel=2, ARM=3]
 def get_cpu_arch(soup):
-    AMD_List = ["AMD", "amd", "amd64", "AMD64", "amd86", "AMD86"]
-    ARM_List = ["ARM", "arm", "arm64", "ARM64", "arm86", "ARM86"]
-
-    title = get_title(soup)
-    arch = get_architecture(soup)
-
-    # Match either title or arch with AMD list
-    if any(item in title for item in AMD_List) or any(item in arch for item in AMD_List):
-        return "1, 2"
+    cpu_keywords = ["AMD", "ARM", "INTEL"]
     
-    # Match either title or arch with ARM list
-    if any(item in title for item in ARM_List) or any(item in arch for item in ARM_List):
+    title = get_title(soup).upper()
+    arch = Get_arch_details(soup).upper()
+
+    if "AMD" in title or "AMD" in arch:
+        return "1, 2"
+    elif "ARM" in title or "ARM" in arch:
         return "3"
+    else:
+        return "1, 2, 3"
+    
+# Child Function 13: Get get_architecture
+def get_architecture(soup):
+    title = get_title(soup)
+    title_filter = title[:-12]
+    archiT = Get_arch_details(soup)
 
-    # Default case
-    return "1, 2, 3"
+    if "64" in title_filter or "64" in archiT:
+        return "x64"
+    elif "86" in title_filter or "86" in archiT:
+        return "x86"
+    else:
+        return "N/A"
 
-
-# Child Function 12: Get More Information URL
+# Child Function 14: Get More Information URL
 def more_info(soup):
     kb_id = get_kb_id(soup)  # e.g., "KB5022282"
     if kb_id == "N/A":
@@ -221,7 +485,7 @@ def more_info(soup):
     # Fallback if not found in page
     return f"https://support.microsoft.com/help/{kb_no}"
 
-# Child Function 13: Get support_url 
+# Child Function 15: Get support_url 
 def support_url(soup):
     kb_id = get_kb_id(soup)  # e.g., "KB5022282"
     if kb_id == "N/A":
@@ -240,7 +504,7 @@ def support_url(soup):
     # Fallback URL if no match is found
     return f"https://support.microsoft.com/help/{kb_no}"
 
-# Child Function 14: Get update_type
+# Child Function 16: Get update_type
 def update_type(soup):
     classification_div = soup.find("div", {"id": "classificationDiv"})
     if classification_div:
@@ -248,7 +512,7 @@ def update_type(soup):
         return text
     return "N/A"
 
-# Child Function 15: Get severity       Modified
+# Child Function 17: Get severity       Modified
 def get_severity(soup):
     severity_div = soup.find("div", {"id": "msrcSeverityDiv"})
     if severity_div:
@@ -258,7 +522,7 @@ def get_severity(soup):
         return text
     return "N/A"
 
-# Child Function 16: Get MSRC_number    Modified
+# Child Function 18: Get MSRC_number    Modified
 def MSRC_number(soup):
     bulletin_div = soup.find("div", {"id": "securityBullitenDiv"})
     if bulletin_div:
@@ -268,7 +532,7 @@ def MSRC_number(soup):
         return text
     return "N/A"
 
-# Child Function 17: Restart_Patch enable/disable [enable=1, disable=0]
+# Child Function 19: Restart_Patch enable/disable [enable=1, disable=0]
 def Restart_Patch(soup):
     reboot_div = soup.find("div", {"id": "rebootBehaviorDiv"})
     if reboot_div:
@@ -285,7 +549,7 @@ def user_input(soup):
         return text.replace("May request user input:", "").strip()
     return "N/A"
 
-# Child Function 19: Install_impact
+# Child Function 20: Install_impact
 def Install_impact(soup):
     impact_div = soup.find("div", {"id": "installationImpactDiv"})
     if impact_div:
@@ -293,7 +557,7 @@ def Install_impact(soup):
         return text if text else "N/A"
     return "N/A"
 
-# Child Function 20: connectivity_requirement
+# Child Function 21: connectivity_requirement
 def connectivity_requirement(soup):
     conn_div = soup.find("div", {"id": "connectivityDiv"})
     if conn_div:
@@ -301,7 +565,7 @@ def connectivity_requirement(soup):
         return text if text else "N/A"
     return "N/A"
 
-# Child Function 21: Uninstall_patch [enable = 1, diable = 0]
+# Child Function 22: Uninstall_patch [enable = 1, diable = 0]
 def Uninstall_patch(soup):
     uninstall_div = soup.find("div", {"id": "uninstallNotesDiv"})
     if uninstall_div:
@@ -311,7 +575,7 @@ def Uninstall_patch(soup):
         return 1
     return 0
 
-# Child Function 22: Uninstall_steps
+# Child Function 23: Uninstall_steps
 def Uninstall_steps(soup):
     steps_div = soup.find("div", {"id": "uninstallStepsDiv"})
     if steps_div:
@@ -320,6 +584,7 @@ def Uninstall_steps(soup):
             return "N/A"
         return text
     return "N/A"
+
 
 
 ##############################################################################################
