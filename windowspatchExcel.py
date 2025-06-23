@@ -385,7 +385,7 @@ def scrape_patch_details_to_excel(patch_ids):
 
     output_file = os.path.join(folder_path, "patch_details.xlsx")
     df.to_excel(output_file, index=False)
-    print(f"\n✅ Patch details saved to: {output_file}")
+    print(f"\n Patch details saved to: {output_file}")
 
 
 
