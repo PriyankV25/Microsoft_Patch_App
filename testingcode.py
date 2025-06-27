@@ -1,15 +1,15 @@
-title123 = "2025-06 Cumulative Update for Windows 10 Version 22H2 for amdx64-based Systems (KB5063159)"
-arch123 = "64"
+# title123 = "2025-06 Cumulative Update for Windows 10 Version 22H2 for amdx64-based Systems (KB5063159)"
+# arch123 = "64"
 
-title = title123.upper()
-arch = arch123.upper()
+# title = title123.upper()
+# arch = arch123.upper()
 
-if "AMD" in title or "AMD" in arch:
-    print("1,2")
-elif "ARM" in title or "ARM" in arch:
-    print("3")
-else:
-    print("1,2,3")
+# if "AMD" in title or "AMD" in arch:
+#     print("1,2")
+# elif "ARM" in title or "ARM" in arch:
+#     print("3")
+# else:
+#     print("1,2,3")
 
 
 
@@ -120,3 +120,76 @@ else:
 #         return "x86"
 #     else:
 #         return "N/A"
+
+# from selenium import webdriver
+# from selenium.webdriver.common.by import By
+# from selenium.webdriver.chrome.service import Service
+# from selenium.webdriver.chrome.options import Options
+# import time
+# from bs4 import BeautifulSoup
+# import re
+# import pandas as pd
+# import os
+# from datetime import datetime
+
+# # Step 1: Get today's folder path
+# base_dir = os.getcwd()
+# today_str = datetime.now().strftime("%Y-%m-%d")
+# folder_name = f"Patch-{today_str}"
+# folder_path = os.path.join(base_dir, folder_name)
+
+# # Step 2: Initialize a set for unique Patch IDs
+# unique_ids = set()
+
+# # Step 3: Read Patch IDs from all Excel files in the folder
+# if os.path.exists(folder_path):
+#     for file in os.listdir(folder_path):
+#         if file.endswith(".xlsx"):
+#             file_path = os.path.join(folder_path, file)
+#             try:
+#                 df = pd.read_excel(file_path, usecols=[0])  # Assuming Patch ID is in first column
+#                 ids = df.iloc[:, 0].dropna().astype(str).tolist()
+#                 unique_ids.update(ids)  # Ensures only unique entries
+#             except Exception as e:
+#                 print(f"Error reading {file}: {e}")
+# else:
+#     print(f"Folder not found: {folder_path}")
+
+# # Step 4: Convert set to list (if needed for indexing)
+# all_ids = list(unique_ids)
+
+# print(f"\nTotal unique Patch IDs collected: {len(all_ids)}")
+
+
+
+import os
+import pandas as pd
+from datetime import datetime
+
+# Step 1: Get today's folder path
+base_dir = os.getcwd()
+today_str = datetime.now().strftime("%Y-%m-%d")
+folder_name = f"Patch-{today_str}"
+folder_path = os.path.join(base_dir, folder_name)
+
+# Step 2: Initialize the list to collect all Patch IDs
+all_ids = []
+
+# Step 3: Read patch IDs from all Excel files in the folder
+if os.path.exists(folder_path):
+    for file in os.listdir(folder_path):
+        if file.endswith(".xlsx"):
+            file_path = os.path.join(folder_path, file)
+            try:
+                df = pd.read_excel(file_path, usecols=[0])  # Only read the first column
+                patch_ids = df.iloc[:, 0].dropna().tolist()  # Drop blanks, convert to list
+                all_ids += patch_ids  # Append to main list (no set, allows duplicates)
+            except Exception as e:
+                print(f"Error reading {file}: {e}")
+else:
+    print(f"Folder not found: {folder_path}")
+
+# Optional: Cast all values to string if needed
+all_ids = [str(patch_id).strip() for patch_id in all_ids]
+
+print(f"\nTotal Patch IDs collected: {len(all_ids)}")
